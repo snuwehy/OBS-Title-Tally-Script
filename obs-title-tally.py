@@ -39,7 +39,7 @@ def on_event(event):
     This just listens for events from OBS, anytime an event happens, it is sent to all the scripts
     the scripts look at input *event* and check it for the particular event they want (because event 
     is an enum) then the script does what it wants to do, basically scripts run ontop and do extra stuff, not outright modify but "enhance" programs per se'''
-    if event == obs.OBS_FRONTEND_EVENT_RECORDING_STARTING:
+    if event == obs.OBS_FRONTEND_EVENT_RECORDING_STARTED:
         print("~[Title Tally] Recording STARTED! The Clock Starts NOW!~ ")
         #   then start timer thang
 
@@ -64,8 +64,3 @@ def script_unload():
     # script_unload(): called when script is removed or OBS closes, best to clean up when its unloaded, remove timer and event callbacks
     print("[Title Tally] Script unloaded, sweep sweep sweep.")
     obs.obs_frontend_remove_event_callback(on_event)
-
-
-
-
-print("Hello!")
