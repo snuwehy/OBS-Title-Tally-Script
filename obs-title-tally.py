@@ -34,6 +34,15 @@ Description: An OBS script that runs in the background during recordings that ke
 
 #   script prints are logged into script log. yeah.
 
+#   dictionary that will hold our "tally" sheet of games & count
+game_tallies = {}
+
+def poll_active_game():
+    """
+    This function actually does the polling, OBS will check every 30 seconds during active recording and tally up to game
+    """
+    print("[Title Tally] Tally Awarded to the Source... (tick)")
+
 def on_event(event):
     '''
     This just listens for events from OBS, anytime an event happens, it is sent to all the scripts
@@ -43,9 +52,19 @@ def on_event(event):
         print("~[Title Tally] Recording STARTED! The Clock Starts NOW!~ ")
         #   then start timer thang
 
+        #   clear previous board from last recording for new recording
+        game_tallies.clear()
+
+        #   call poll_active game every 60000 miliseconds = 60 seconds = 1 minute
+        obs.timer_add(poll_active_game, 60000)
+
     elif event == obs.OBS_FRONTEND_EVENT_RECORDING_STOPPED:
         print("[Title Tally] RED LIGHT! Recording has STOPPED! Tally Up The Numbers!")
         # stop timer, but then also rename file
+
+        #   remove the timer at end of recording, otherwise, obs will continue to run it in the background as OBS is open 
+        obs.timer_remove(poll_active_game)
+
 
 #   the script lives and dies by on_event, if anything, it is what makes an OBS script what it is, everything below is just filling out the struct essentially. on_event is what is *dynamically mounted* and so therefore must be taken care of with special care
 
