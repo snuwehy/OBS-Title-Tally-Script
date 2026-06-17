@@ -37,17 +37,48 @@ Description: An OBS script that runs in the background during recordings that ke
 #   dictionary that will hold our "tally" sheet of games & count
 game_tallies = {}
 
+#   *** must be changed to exact name of source in OBS ***
+TARGET_SOURCE_NAME = "Game Capture"
+
 def poll_active_game():
     """
     This function actually does the polling, OBS will check every 30 seconds during active recording and tally up to game
     """
     print("[Title Tally] Tally Awarded to the Source... (tick)")
 
+    #   gets the pointer to source, ie hooking onto source
+    source = obs.obs_get_source_by_name(TARGET_SOURCE_NAME)
+
+    if source is not None:
+        #   check that the source is active (showing) and actively recording a game (width) [if a capture isn't capturing a game/source, the width is 0]
+        is_showing = obs.obs_source_showing(source)
+        width = obs.obs_source_get_width(source)
+
+        if (is_showing) and (width > 0):
+            #   get the attributes of the source capture to get the actual capture source attribute
+            settings = obs.obs_source_get_settings(source)
+
+            #   window is the interal string that stores the source
+            window_string = obs.obs_data_get_string(settings, "window")
+
+            if window_string:
+                game_tallies[window_string] = game_tallies.get(window_string, 0) + 1
+                print(f"[Title Tally] Tick registered for: {window_string}")
+
+            #   release the settings object that we captured from memory
+            obs.obs_data_release(settings)
+
+        #   release the source object from memory
+        obs.obs_source_release(source)
+
 def on_event(event):
     '''
     This just listens for events from OBS, anytime an event happens, it is sent to all the scripts
     the scripts look at input *event* and check it for the particular event they want (because event 
     is an enum) then the script does what it wants to do, basically scripts run ontop and do extra stuff, not outright modify but "enhance" programs per se'''
+
+    global game_tallies 
+
     if event == obs.OBS_FRONTEND_EVENT_RECORDING_STARTED:
         print("~[Title Tally] Recording STARTED! The Clock Starts NOW!~ ")
         #   then start timer thang
